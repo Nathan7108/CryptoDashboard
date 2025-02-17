@@ -36,3 +36,37 @@
     transform: rotate(360deg);
   }
 }
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  table thead {
+    display: none;
+  }
+
+  table tbody tr {
+    margin-bottom: 15px;
+  }
+
+  table td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+  }
+
+  table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 50%;
+    padding-left: 10px;
+    font-weight: bold;
+    text-align: left;
+  }
+}
