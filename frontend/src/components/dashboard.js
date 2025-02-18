@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import socket from "../services/socket";
 import CoinList from "./CoinList";
-import "../css/dashboard.css"; // Import Dashboard CSS
+import "../css/Dashboard.css"; // Import Dashboard CSS
 
 const Dashboard = () => {
   const [marketData, setMarketData] = useState(null);

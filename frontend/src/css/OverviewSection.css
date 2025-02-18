@@ -1,0 +1,84 @@
+/* src/components/OverviewSection.css */
+
+/* Overall container */
+.overview {
+    padding: 1rem;
+    background-color: #1a1f2c; /* Dark background */
+    color: #fff;
+    margin-bottom: 1rem;
+  }
+  
+  .overview h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .overview p {
+    margin-bottom: 1rem;
+    color: #ccc;
+  }
+  
+  /* Card container layout: 3 columns on large screens */
+  .overview__cards-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  /* Individual card styling */
+  .overview__card {
+    background-color: #2a2f3c;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  
+  /* Trending coins card */
+  .overview__trending h3 {
+    margin-bottom: 0.5rem;
+  }
+  .overview__trending ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .overview__trending li {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Market stats card */
+  .overview__stats .stats-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .overview__stats .stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Promo/Ad card */
+  .overview__promo .promo-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .overview__promo .promo-content img {
+    max-width: 100%;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Responsive: switch to fewer columns on smaller screens */
+  @media (max-width: 992px) {
+    .overview__cards-container {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .overview__cards-container {
+      grid-template-columns: 1fr;
+    }
+  }
+  

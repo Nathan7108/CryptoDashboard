@@ -21,10 +21,10 @@ COINCAP_API_KEY = os.getenv("COINCAP_API_KEY", "your_api_key_here")
 @app.route('/api/market', methods=['GET'])
 def get_market_data():
     """
-    Fetches coin market data using the /assets endpoint.
+    Fetches coin market data using the /assets endpoint with a limit of 500.
     This endpoint returns detailed information including coin names.
     """
-    url = f"{COINCAP_API_URL}/assets"
+    url = f"{COINCAP_API_URL}/assets?limit=500"
     headers = {"Authorization": f"Bearer {COINCAP_API_KEY}"}
     try:
         response = requests.get(url, headers=headers)
@@ -38,11 +38,40 @@ def get_market_data():
 @app.route('/api/history/<coin_id>', methods=['GET'])
 def get_history(coin_id):
     """
-    Fetches historical price data for a specific coin.
-    Optional query parameter 'interval' (default: 'm1' for 1 minute).
+    Fetches historical price data for a specific coin based on a custom range.
+    Use the query parameter 'range' with one of these options: max, 1yr, 3m, 1m, 7d, 24hr.
+    The endpoint calculates the appropriate start and end timestamps and sets a suitable interval.
     """
-    interval = request.args.get('interval', 'm1')
-    url = f"{COINCAP_API_URL}/assets/{coin_id}/history?interval={interval}"
+    range_option = request.args.get('range', '24hr')
+    end = int(time.time() * 1000)  # current time in ms
+    start = None
+    api_interval = None
+
+    if range_option == 'max':
+        # "max" data from the beginning; CoinCap expects a start of 0 for maximum range
+        start = 0
+        api_interval = 'd1'
+    elif range_option == '1yr':
+        start = end - (365 * 24 * 60 * 60 * 1000)
+        api_interval = 'd1'
+    elif range_option == '3m':
+        start = end - (90 * 24 * 60 * 60 * 1000)
+        api_interval = 'h12'
+    elif range_option == '1m':
+        start = end - (30 * 24 * 60 * 60 * 1000)
+        api_interval = 'h1'
+    elif range_option == '7d':
+        start = end - (7 * 24 * 60 * 60 * 1000)
+        api_interval = 'h1'
+    elif range_option == '24hr':
+        start = end - (24 * 60 * 60 * 1000)
+        api_interval = 'm5'
+    else:
+        # Default to 24hr if unrecognized
+        start = end - (24 * 60 * 60 * 1000)
+        api_interval = 'm5'
+
+    url = f"{COINCAP_API_URL}/assets/{coin_id}/history?start={start}&end={end}&interval={api_interval}"
     headers = {"Authorization": f"Bearer {COINCAP_API_KEY}"}
     try:
         response = requests.get(url, headers=headers)
@@ -59,7 +88,7 @@ def background_thread():
     """
     while True:
         time.sleep(10)
-        url = f"{COINCAP_API_URL}/assets"
+        url = f"{COINCAP_API_URL}/assets?limit=500"
         headers = {"Authorization": f"Bearer {COINCAP_API_KEY}"}
         try:
             response = requests.get(url, headers=headers)
