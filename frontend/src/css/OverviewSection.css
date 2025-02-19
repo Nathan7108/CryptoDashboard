@@ -1,21 +1,18 @@
-/* src/components/OverviewSection.css */
-
-/* Overall container */
 .overview-container {
-    padding: 0 1rem;
-    color: #fff;
-  }
-  
-  .overview-container h2 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .overview-container p {
-    margin-bottom: 1rem;
-    color: #ccc;
-  }
-  
+  padding: 0 1rem;
+  color: #212529;
+}
+
+.overview-container h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #212529;
+}
+
+.overview-container p {
+  margin-bottom: 1rem;
+  color: #6c757d; /* Subtle gray for secondary text */
+}
   /* Parent container with two columns */
   .overview-content {
     display: flex;
@@ -48,12 +45,12 @@
   .stat-info h3 {
     margin: 0;
     font-size: 1.2rem;
-    color: #333;
+    color: #212529;
   }
   
   .stat-info p {
     margin: 0.2rem 0;
-    color: #888;
+    color: #6c757d;
     font-size: 0.9rem;
   }
   
@@ -126,6 +123,11 @@
   
   .coin-item span {
     color: #333;
+  }
+  .stat-card, .list-card {
+    background: #fff;
+    border: 0;
+    border-radius: 8px;
   }
   
   /* Responsive adjustments */

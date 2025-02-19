@@ -1,7 +1,16 @@
-/* src/css/Dashboard.css */
+.dashboard {
+  padding: 20px;
+  width: 100%;
+  min-height: 100vh; /* Ensure full viewport height */
+  box-sizing: border-box;
+  background-color: #fff; /* White background for the dashboard */
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
 
 .coin-list {
-  margin: 20px 0;
+  width: 1300px;
+  margin: 20px auto; /* Center horizontally */
 }
 
 .coin-list-header {
@@ -12,61 +21,46 @@
 
 .coin-search-input {
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid #dee2e6;
   border-radius: 4px;
   width: 250px;
   font-size: 1rem;
+  background-color: #fff;
+  color: #212529;
 }
 
+/* Table styling */
 .coin-table {
   width: 100%;
   border-collapse: collapse;
   background-color: #fff;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 .coin-table thead {
-  background-color: #007bff;
+  background-color: #007bff; /* Accent color for header */
   color: #fff;
 }
+.coin-table thead th {
+  background-color: #007bff; /* Accent color for header */
+  color: #fff;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
 
-.coin-table th,
 .coin-table td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #dee2e6;
+  background-color: #fff;
 }
+
 
 .coin-table tbody tr:hover {
-  background-color: #f1f1f1;
+  background-color: #f1f3f5; /* Subtle hover effect */
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .coin-table, .coin-table thead, .coin-table tbody, .coin-table th, .coin-table td, .coin-table tr {
-    display: block;
-  }
-
-  .coin-table thead {
-    display: none;
-  }
-
-  .coin-table td {
-    text-align: right;
-    padding-left: 50%;
-    position: relative;
-  }
-
-  .coin-table td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 10px;
-    width: 40%;
-    padding-right: 10px;
-    font-weight: bold;
-    text-align: left;
-  }
-}
 /* Pagination styling */
 .pagination {
   display: flex;
@@ -78,8 +72,8 @@
 .pagination button {
   padding: 8px 12px;
   border: none;
-  background-color: #ddd;
-  color: #333;
+  background-color: #dee2e6;
+  color: #212529;
   cursor: pointer;
   border-radius: 4px;
 }
@@ -92,4 +86,36 @@
 .pagination button:disabled {
   background-color: #f0f0f0;
   cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .coin-table,
+  .coin-table thead,
+  .coin-table tbody,
+  .coin-table th,
+  .coin-table td,
+  .coin-table tr {
+    display: block;
+  }
+  
+  .coin-table thead {
+    display: none;
+  }
+  
+  .coin-table td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+  }
+  
+  .coin-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    width: 40%;
+    padding-right: 10px;
+    font-weight: bold;
+    text-align: left;
+  }
 }

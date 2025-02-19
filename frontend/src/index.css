@@ -1,4 +1,4 @@
-/* styles.css */
+/* index.css */
 
 /* Global resets and typography */
 * {
@@ -9,15 +9,18 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f4f4;
-  color: #333;
+  background-color: #f8f9fa; /* Soft light gray background */
+  color: #212529;            /* Dark text for readability */
 }
 
-/* Container */
+/* Main container for content */
 .container {
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 0 auto;
   padding: 20px;
+  background-color: #fff; /* White background for content */
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
 }
 
 /* Utility classes */

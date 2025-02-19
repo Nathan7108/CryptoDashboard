@@ -1,4 +1,4 @@
-// In src/components/Dashboard.js
+// In Dashboard.js
 import React, { useEffect, useState } from "react";
 import socket from "../services/socket";
 import CoinList from "./CoinList";
@@ -20,7 +20,7 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="dashboard container">
+    <div className="dashboard">
       <h2>Market Data (Real-Time Updates)</h2>
       {marketData ? (
         <CoinList coins={marketData} />

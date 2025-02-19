@@ -1,28 +1,27 @@
-/* src/css/Header.css */
+/* header.css */
 
-/* Container for the entire header */
+/* Header bar */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #1a1f2c; /* Dark navy background */
-  padding: 0.5rem 1rem;
-  color: #fff;
+  background-color: #fff; /* White header for a light feel */
+  padding: 0.75rem 1rem;
+  color: #212529;
+  border-bottom: 1px solid #dee2e6;
 }
 
-/* Logo/brand area */
+/* Logo text */
 .header__logo {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: bold;
 }
 
-/* Center nav links */
+/* Navigation links */
 .header__nav ul {
   list-style: none;
   display: flex;
   gap: 1.5rem;
-  margin: 0;
-  padding: 0;
 }
 
 .header__nav ul li {
@@ -31,28 +30,30 @@
 }
 
 .header__nav ul li:hover {
-  color: #bbb;
+  color: #007bff; /* Accent on hover */
 }
 
-/* Right-side actions (search, login, menu icon) */
+/* Header actions (search, login button) */
 .header__actions {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-/* Search bar styling */
+/* Search bar */
 .header__search {
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
-  border: 1px solid #ddd;
+  border: 1px solid #dee2e6;
   outline: none;
   font-size: 0.9rem;
+  background-color: #fff;
+  color: #212529;
 }
 
-/* Login button styling */
+/* Login button */
 .header__login {
-  background-color: #0066ff;
+  background-color: #007bff; /* Accent color */
   border: none;
   color: #fff;
   padding: 0.4rem 0.8rem;
@@ -62,22 +63,14 @@
 }
 
 .header__login:hover {
-  background-color: #0052cc;
+  background-color: #0056b3; /* Darker blue on hover */
 }
 
-/* Menu icon (hamburger or '=' sign) - hidden on larger screens */
-.header__menu-icon {
-  display: none; 
-  cursor: pointer;
-  font-size: 1.2rem;
-}
-
-/* RESPONSIVE: On smaller screens, show menu icon and hide nav links */
+/* Responsive: show menu icon on small screens */
 @media (max-width: 768px) {
   .header__nav ul {
-    display: none; /* Or transform into a mobile menu */
+    display: none;
   }
-
   .header__menu-icon {
     display: block;
   }
