@@ -1,4 +1,3 @@
-// src/components/CoinDetail.js
 import React, { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import axios from "axios";
@@ -8,6 +7,7 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  TimeScale,
   PointElement,
   LineElement,
   Title,
@@ -15,10 +15,12 @@ import {
   Legend,
 } from "chart.js";
 
-// Register required components for Chart.js
+import "chartjs-adapter-date-fns";
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
+  TimeScale,
   PointElement,
   LineElement,
   Title,
@@ -26,7 +28,6 @@ ChartJS.register(
   Legend
 );
 
-// Define the available range options
 const rangeOptions = ["max", "1yr", "3m", "1m", "7d", "24hr"];
 
 const CoinDetail = ({ coinId = "bitcoin" }) => {
@@ -34,7 +35,6 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
   const [range, setRange] = useState("24hr");
 
   useEffect(() => {
-    // Fetch historical data using the selected range option
     axios
       .get(`http://127.0.0.1:5000/api/history/${coinId}?range=${range}`)
       .then((response) => {
@@ -49,11 +49,8 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
     return <p>Loading historical data for {coinId}...</p>;
   }
 
-  // Prepare data for the chart
   const chartData = {
-    labels: historyData.map((point) =>
-      new Date(point.time).toLocaleTimeString()
-    ),
+    labels: historyData.map((point) => point.time),
     datasets: [
       {
         label: `${coinId.charAt(0).toUpperCase() + coinId.slice(1)} Price (USD)`,
@@ -61,8 +58,66 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
         fill: false,
         backgroundColor: "rgba(75,192,192,0.4)",
         borderColor: "rgba(75,192,192,1)",
+        tension: 0.1, // smooths out the line
+        pointRadius: 2,
       },
     ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: "top" },
+      title: {
+        display: true,
+        text: `${coinId.charAt(0).toUpperCase() + coinId.slice(1)} Price History`,
+      },
+      tooltip: {
+        mode: "index",
+        intersect: false,
+        callbacks: {
+          label: (context) => {
+            let label = context.dataset.label || "";
+            if (label) {
+              label += ": ";
+            }
+            if (context.parsed.y !== null) {
+              label += new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: "USD",
+              }).format(context.parsed.y);
+            }
+            return label;
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        type: "time",
+        time: {
+          tooltipFormat: "PPpp", // Date and time format
+          unit: "day", // Adjust unit based on range if needed
+        },
+        title: {
+          display: true,
+          text: "Date",
+        },
+        grid: {
+          display: false,
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: "Price (USD)",
+        },
+        ticks: {
+          callback: (value) => `$${value}`,
+        },
+      },
+    },
   };
 
   return (
@@ -70,7 +125,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
       <h2>
         {coinId.charAt(0).toUpperCase() + coinId.slice(1)} Price History
       </h2>
-      {/* Range selection options */}
+      {/* Range selection buttons */}
       <div className="range-options">
         {rangeOptions.map((option) => (
           <button
@@ -82,7 +137,10 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
           </button>
         ))}
       </div>
-      <Line data={chartData} redraw />
+      {/* Chart container with fixed height */}
+      <div style={{ height: "500px" }}>
+        <Line data={chartData} options={chartOptions} redraw />
+      </div>
     </div>
   );
 };

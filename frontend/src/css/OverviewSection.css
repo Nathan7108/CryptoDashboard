@@ -1,84 +1,145 @@
 /* src/components/OverviewSection.css */
 
 /* Overall container */
-.overview {
-    padding: 1rem;
-    background-color: #1a1f2c; /* Dark background */
+.overview-container {
+    padding: 0 1rem;
     color: #fff;
-    margin-bottom: 1rem;
   }
   
-  .overview h2 {
+  .overview-container h2 {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
   }
   
-  .overview p {
+  .overview-container p {
     margin-bottom: 1rem;
     color: #ccc;
   }
   
-  /* Card container layout: 3 columns on large screens */
-  .overview__cards-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+  /* Parent container with two columns */
+  .overview-content {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  
+  /* Left Column: Stats (stacked vertically) */
+  .stats-container {
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
   }
   
-  /* Individual card styling */
-  .overview__card {
-    background-color: #2a2f3c;
-    padding: 1rem;
+  /* Stat Card (Market Cap and Volume) */
+  .stat-card {
+    height: 90.1875px;
+    width: 1270px.663px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border: 0px solid #E5E7EB;
     border-radius: 8px;
   }
   
-  /* Trending coins card */
-  .overview__trending h3 {
+  .stat-info h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+  }
+  
+  .stat-info p {
+    margin: 0.2rem 0;
+    color: #888;
+    font-size: 0.9rem;
+  }
+  
+  .change {
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+  }
+  
+  .sparkline {
+    width: 100px;
+    height: 30px;
+  }
+  
+  /* Right Column: Lists (Trending and Top Gainers arranged side by side) */
+  .lists-container {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  /* List Card for Trending and Top Gainers */
+  .list-card {
+    height: 188.375px;
+    width: 416.663px;
+    padding: 6px 8px;
+    background: #fff;
+    border: 0px solid #E5E7EB;
+    border-radius: 8px;
+  }
+  
+  .list-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 0.5rem;
   }
-  .overview__trending ul {
+  
+  .list-card-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .list-card-header a {
+    font-size: 0.9rem;
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .list-card-header a:hover {
+    text-decoration: underline;
+  }
+  
+  .list-card ul {
     list-style: none;
     padding: 0;
     margin: 0;
   }
-  .overview__trending li {
-    margin-bottom: 0.5rem;
-  }
   
-  /* Market stats card */
-  .overview__stats .stats-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .overview__stats .stat {
+  .coin-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    padding: 0.4rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f0f0f0;
   }
   
-  /* Promo/Ad card */
-  .overview__promo .promo-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .overview__promo .promo-content img {
-    max-width: 100%;
-    border-radius: 4px;
-    margin-bottom: 0.5rem;
+  .coin-item:last-child {
+    border-bottom: none;
   }
   
-  /* Responsive: switch to fewer columns on smaller screens */
+  .coin-item span {
+    color: #333;
+  }
+  
+  /* Responsive adjustments */
   @media (max-width: 992px) {
-    .overview__cards-container {
-      grid-template-columns: 1fr 1fr;
+    .overview-content {
+      flex-direction: column;
+      align-items: center;
     }
-  }
-  
-  @media (max-width: 600px) {
-    .overview__cards-container {
-      grid-template-columns: 1fr;
+    .stat-card, .list-card {
+      width: 100%;
+      max-width: 416.663px;
+    }
+    .lists-container {
+      flex-direction: column;
     }
   }
   
