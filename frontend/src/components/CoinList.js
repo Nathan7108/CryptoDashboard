@@ -1,7 +1,7 @@
 // src/components/CoinList.js
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import "../css/Dashboard.css"; // Ensure this CSS file includes pagination styles
+import "../css/dashboard.css"; // Ensure this CSS file includes pagination styles
 
 const CoinList = ({ coins }) => {
   const [search, setSearch] = useState("");
