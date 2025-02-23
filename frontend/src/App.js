@@ -1,5 +1,5 @@
 // src/App.js
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
 import Header from "./components/header";
 import OverviewSection from "./components/OverviewSection";
@@ -7,21 +7,24 @@ import Dashboard from "./components/dashboard";
 import CoinDetail from "./components/CoinDetail";
 
 function App() {
+  // Lift the search state here so the entire app can use it
+  const [searchTerm, setSearchTerm] = useState("");
+
   return (
     <BrowserRouter>
-      <Header />
+      {/* Single Header at the top */}
+      <Header onSearch={setSearchTerm} />
       <Routes>
-        {/* On the home page, render both the OverviewSection and the Dashboard */}
         <Route
           path="/"
           element={
             <>
               <OverviewSection />
-              <Dashboard />
+              {/* Pass the searchTerm down to Dashboard */}
+              <Dashboard searchTerm={searchTerm} />
             </>
           }
         />
-        {/* Coin details page */}
         <Route path="/coin/:coinId" element={<CoinDetailWrapper />} />
       </Routes>
     </BrowserRouter>

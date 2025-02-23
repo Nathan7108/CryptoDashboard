@@ -1,0 +1,12 @@
+diff --git a/node_modules/rc-slider/es/utils.js b/node_modules/rc-slider/es/utils.js
+index ff54edf..953ba5b 100644
+--- a/node_modules/rc-slider/es/utils.js
++++ b/node_modules/rc-slider/es/utils.js
+@@ -1,5 +1,6 @@
+ import _toConsumableArray from "@babel/runtime/helpers/esm/toConsumableArray";
+-import { findDOMNode } from 'react-dom';
++import ReactDOM from 'react-dom';
++const findDOMNode = ReactDOM.findDOMNode;
+ import keyCode from "rc-util/es/KeyCode";
+ export function isEventFromHandle(e, handles) {
+   try {

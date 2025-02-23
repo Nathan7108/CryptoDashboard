@@ -11,6 +11,7 @@
     "chart.js": "^4.4.7",
     "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^2.29.3",
+    "rc-slider": "^9.7.5",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
@@ -23,6 +24,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "postinstall": "patch-package",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -43,5 +45,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0"
   }
 }

@@ -1,14 +1,15 @@
-// src/components/Header.js
-import React from "react";
-import "../css/header.css"; // Import the CSS file
+import "../css/header.css";
 
 const Header = () => {
+  // Remove state and functions related to the modal if they're no longer needed
+  // const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // const openSearch = () => setIsSearchOpen(true);
+  // const closeSearch = () => setIsSearchOpen(false);
+
   return (
     <header className="header">
-      {/* Left: Logo/Brand */}
       <div className="header__logo">MyCryptoDash</div>
-
-      {/* Center: Navigation Links */}
       <nav className="header__nav">
         <ul>
           <li>Cryptocurrencies</li>
@@ -17,17 +18,13 @@ const Header = () => {
           <li>Products</li>
         </ul>
       </nav>
-
-      {/* Right: Search Bar + Login Button + (Optional) Hamburger Menu */}
       <div className="header__actions">
-        <input
-          type="text"
-          className="header__search"
-          placeholder="Search..."
-        />
+        {/* Remove the search button if it's not needed or replace it with a different UI element */}
+        <button className="header__search-button">
+          🔍 Search
+        </button>
         <button className="header__login">Log in</button>
-        <div className="header__menu-icon">&#61;</div> 
-        {/* The '=' symbol or a hamburger icon (e.g., &#9776;) */}
+        <div className="header__menu-icon">&#61;</div>
       </div>
     </header>
   );

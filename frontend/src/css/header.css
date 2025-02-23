@@ -1,4 +1,4 @@
-/* header.css */
+/* src/css/header.css */
 
 /* Header bar */
 .header {
@@ -40,7 +40,12 @@
   gap: 1rem;
 }
 
-/* Search bar */
+/* Search bar container */
+.header__search-container {
+  position: relative;
+}
+
+/* Search input */
 .header__search {
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
@@ -49,6 +54,40 @@
   font-size: 0.9rem;
   background-color: #fff;
   color: #212529;
+}
+
+/* Search suggestions dropdown */
+.header__search {
+  width: 150px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  outline: none;
+  font-size: 0.9rem;
+  background-color: #fff;
+  color: #212529;
+  transition: width 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.header__search:focus {
+  width: 250px; /* Expands on focus */
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+}
+
+.header__search-suggestions ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.header__search-suggestions li {
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.header__search-suggestions li:hover {
+  background-color: #f1f3f5;
 }
 
 /* Login button */
@@ -60,6 +99,17 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
+}
+.header__search::placeholder {
+  color: #aaa;
+  transition: opacity 0.3s ease;
+}
+.header__search:focus::placeholder {
+  opacity: 0.5;
+}
+.search-modal-suggestions {
+  background-color: rgba(255, 0, 0, 0.1); /* light red background */
+  border: 1px solid red;
 }
 
 .header__login:hover {

@@ -1,10 +1,10 @@
-// In Dashboard.js
+// src/components/Dashboard.js
 import React, { useEffect, useState } from "react";
 import socket from "../services/socket";
 import CoinList from "./CoinList";
-import "../css/dashboard.css"; // Import Dashboard CSS
+import "../css/dashboard.css";
 
-const Dashboard = () => {
+const Dashboard = ({ searchTerm }) => {
   const [marketData, setMarketData] = useState(null);
 
   useEffect(() => {
@@ -21,9 +21,8 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <h2>Market Data (Real-Time Updates)</h2>
       {marketData ? (
-        <CoinList coins={marketData} />
+        <CoinList coins={marketData} searchTerm={searchTerm} />
       ) : (
         <p>Loading market data...</p>
       )}

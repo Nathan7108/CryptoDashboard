@@ -1,15 +1,185 @@
-/* CoinDetail.css */
+/* ------------------------------
+   Top Section: Price & Coin Info
+------------------------------ */
+.coin-detail-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
 
-.coin-detail {
-  padding: 20px;
+.price-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coin-price {
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.price-change {
+  font-size: 1rem;
+  margin-left: 10px;
+  align-self: flex-start;
+  padding-top: 10px;
+}
+
+/* ------------------------------
+   Info Row: Market Cap, Volume, Supply
+------------------------------ */
+.coin-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px; /* Adjust gap as needed */
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.coin-info-block {
+  text-align: center;
+}
+
+.coin-info-block strong {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.coin-info-block div {
+  font-size: 1rem;
+}
+
+/* ------------------------------
+   Range Options Buttons
+------------------------------ */
+.range-options {
+  display: flex;
+  justify-content: flex-end;
+  margin: 20px 0;
+  gap: 8px;
+}
+
+.range-options button {
+  padding: 8px 12px;
+  border: none;
+  background-color: #dee2e6;
+  color: #212529;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+
+
+/* ------------------------------
+   Middle Stats Row
+------------------------------ */
+.coin-detail-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.coin-detail-stats > div {
+  text-align: center;
+}
+
+.coin-detail-stats strong {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.coin-detail-stats p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* ------------------------------
+   Chart Section
+------------------------------ */
+.coin-detail-chart {
   background: #fff;
   border: 1px solid #dee2e6;
   border-radius: 4px;
-  margin-top: 20px;
+  padding: 20px;
+}
+/* Combined container for Yearly (or range-based) stats and range buttons */
+/* Combined container for stats and range buttons */
+.coin-detail-yr-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 36px;
+  width: 1384px;
+  margin: 0 auto;
+  padding: 0 10px;
+  margin-bottom: 20px;
 }
 
-.coin-detail h2 {
-  margin-bottom: 20px;
+/* Stats info (left side) – center the stats */
+.coin-detail-yr-container .stats-info {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+
+.coin-detail-yr-container .stats-info .stats-item {
   text-align: center;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.coin-detail-yr-container .stats-info .stats-item strong {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: bold;
+}
+
+/* Parent container (range-options) with a rounded border */
+.coin-detail-yr-container .range-options {
+  height: 35.2px;
+  width: 291.2px;
+  border: 2px solid #D4D4D4;
+  margin-left: 209px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  overflow: hidden;
+}
+
+.coin-detail-yr-container .range-options button {
+  flex: 1;
+  height: 100%; /* Fill the container's height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
   color: #212529;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.coin-detail-yr-container .range-options button.active {
+  background-color: #ffd600;
+  color: #000;
 }
