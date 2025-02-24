@@ -1,5 +1,4 @@
-Flask
-flask-cors
+fastapi
+uvicorn
 requests
 python-dotenv
-Flask-SocketIO

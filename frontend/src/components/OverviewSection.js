@@ -17,7 +17,7 @@ const OverviewSection = () => {
   useEffect(() => {
     // Fetch market data from backend
     axios
-      .get("http://127.0.0.1:5000/api/market")
+      .get("http://127.0.0.1:8000/api/market")
       .then((res) => {
         const coins = res.data.data;
         // Calculate global metrics
@@ -47,7 +47,7 @@ const OverviewSection = () => {
 
     // Fetch historical global market cap data for sparkline
     axios
-      .get("http://127.0.0.1:5000/api/globalMarketHistory")
+      .get("http://127.0.0.1:8000/api/globalMarketHistory")
       .then((res) => {
         // Expecting res.data.data to be an array of numbers
         setMarketHistory(res.data.data);
@@ -58,7 +58,7 @@ const OverviewSection = () => {
 
     // Fetch historical global 24h volume data for sparkline
     axios
-      .get("http://127.0.0.1:5000/api/globalVolumeHistory")
+      .get("http://127.0.0.1:8000/api/globalVolumeHistory")
       .then((res) => {
         setVolumeHistory(res.data.data);
       })

@@ -105,7 +105,7 @@ const CoinRow = ({ coin }) => {
 
   useEffect(() => {
     // Fetch 1hr history
-    fetch(`http://localhost:5000/api/history/${coin.id}?range=1hr`)
+    fetch(`http://localhost:8000/api/history/${coin.id}?range=1hr`)
     .then((res) => res.json())
       .then((data) => {
         console.log("1hr data for", coin.id, data);
@@ -123,7 +123,7 @@ const CoinRow = ({ coin }) => {
       });
   
     // Fetch 7d history
-    fetch(`http://localhost:5000/api/history/${coin.id}?range=7d`)
+    fetch(`http://localhost:8000/api/history/${coin.id}?range=7d`)
     .then((res) => res.json())
       .then((data) => {
         console.log("7d data for", coin.id, data);

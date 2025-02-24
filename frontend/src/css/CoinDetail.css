@@ -183,3 +183,14 @@
   background-color: #ffd600;
   color: #000;
 }
+.slider-wrapper {
+  position: relative;
+  width: 100%;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.slider-label {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}

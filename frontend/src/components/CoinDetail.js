@@ -84,6 +84,24 @@ const crosshairPlugin = {
     }
   },
 };
+const formatDuration = (duration, preset) => {
+  // duration is in milliseconds
+  if (preset === "7d" || preset === "1yr" || preset === "3m" || preset === "max" || preset === "1m") {
+    // For longer ranges, use days
+    const days = duration / (1000 * 60 * 60 * 24);
+    return `${days.toFixed(1)} days`;
+  } else if (preset === "24hr") {
+    const hours = duration / (1000 * 60 * 60);
+    return `${hours.toFixed(1)} hours`;
+  } else if (preset === "1hr") {
+    const minutes = duration / (1000 * 60);
+    return `${minutes.toFixed(1)} minutes`;
+  } else {
+    // fallback to hours
+    const hours = duration / (1000 * 60 * 60);
+    return `${hours.toFixed(1)} hours`;
+  }
+};
 
 ChartJS.register(
   CategoryScale,
@@ -101,17 +119,28 @@ ChartJS.defaults.elements.line.clip = false;
 
 const rangeOptions = ["max", "1yr", "3m", "1m", "7d", "24hr"];
 
-const computeTimeRange = (preset) => {
+const computeTimeRange = (preset, fullData) => {
   const now = Date.now();
   let start;
   switch (preset) {
+    case "max":
+      start = fullData && fullData.length ? fullData[0].x : now - 365 * 24 * 60 * 60 * 1000;
+      break;
+    case "1yr":
+      start = now - 365 * 24 * 60 * 60 * 1000;
+      break;
+    case "3m":
+      start = now - 90 * 24 * 60 * 60 * 1000;
+      break;
+    case "1m":
+      start = now - 30 * 24 * 60 * 60 * 1000;
+      break;
     case "7d":
       start = now - 7 * 24 * 60 * 60 * 1000;
       break;
     case "24hr":
       start = now - 24 * 60 * 60 * 1000;
       break;
-    // Add additional cases as needed
     default:
       start = now - 24 * 60 * 60 * 1000;
   }
@@ -131,36 +160,21 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
 
 
   useEffect(() => {
-    const [start, end] = computeTimeRange(preset);
+    // Assuming 'interpolatedData' holds your fetched data sorted by time
+    const dataForRange = interpolatedData.length ? interpolatedData : null;
+    const [start, end] = computeTimeRange(preset, dataForRange);
     setDomainTimeRange([start, end]);
     setSelectedRange([start, end]);
-  }, [preset]);
-  useEffect(() => {
+  }, [preset, interpolatedData]);
+    useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/history/${coinId}?range=${preset}`)
+      .get(`http://localhost:8000/api/history/${coinId}?range=${preset}`)
       .then((res) => {
         // process your data and update chart datasets...
       })
       .catch((err) => console.error(`Error fetching history data for ${coinId}:`, err));
   }, [coinId, preset]);
 
-  useEffect(() => {
-    const fetchCoinDetail = () => {
-      axios
-        .get(`https://api.coincap.io/v2/assets/${coinId}?timestamp=${Date.now()}`)
-        .then((res) => {
-          console.log("New coin detail data:", res.data.data);
-          setCoinDetail(res.data.data);
-        })
-        .catch((err) => console.error("Error fetching coin detail:", err));
-    };
-    fetchCoinDetail();
-    const interval = setInterval(() => fetchCoinDetail(), 5000);
-    return () => clearInterval(interval);
-  }, [coinId]);
-  useEffect(() => {
-    console.log("Current coin detail:", coinDetail);
-  }, [coinDetail]);
   
 
 
@@ -181,7 +195,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/history/${coinId}?range=${range}`)
+      .get(`http://localhost:8000/api/history/${coinId}?range=${range}`)
       .then((res) => {
         const rawData = res.data.data;
         if (!rawData || rawData.length < 1) {
@@ -336,10 +350,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
             })}
           </h1>
           {stats.open ? (
-            <span
-              className="price-change"
-              style={{ color: priceChangeDisplayColor }}
-            >
+            <span className="price-change" style={{ color: priceChangeDisplayColor }}>
               {priceChangeFormatted}
             </span>
           ) : (
@@ -358,8 +369,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
           <div className="coin-info-block">
             <strong>Supply (Circ. / Total / Max)</strong>
             <div>
-              {coinDetail.supply} / {coinDetail.totalSupply} /{" "}
-              {coinDetail.maxSupply}
+              {coinDetail.supply} / {coinDetail.totalSupply} / {coinDetail.maxSupply}
             </div>
           </div>
         </div>
@@ -409,7 +419,10 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
           {rangeOptions.map((option) => (
             <button
               key={option}
-              onClick={() => setPreset(option)}
+              onClick={() => {
+                setPreset(option);
+                setRange(option); // update the range used for fetching data
+              }}
               className={preset === option ? "active" : ""}
             >
               {option.toUpperCase()}
@@ -418,21 +431,23 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
         </div>
       </div>
   
-      {/* Dual-Handle Slider */}
-      <div className="slider-container">
-        <TimeRangeSlider
-          min={domainTimeRange[0]}
-          max={domainTimeRange[1]}
-          value={selectedRange}
-          onRangeChange={(newRange) => setSelectedRange(newRange)}
-        />
-      </div>
-  
       {/* Chart */}
       <div style={{ height: "500px" }}>
         <Line data={chartData} options={chartOptions} />
       </div>
+  
+      {/* Slider at the Bottom */}
+      <div className="slider-wrapper" style={{ marginTop: "20px", textAlign: "center" }}>
+        <div className="slider-container">
+          <TimeRangeSlider
+            min={domainTimeRange[0]}
+            max={domainTimeRange[1]}
+            value={selectedRange}
+            onRangeChange={(newRange) => setSelectedRange(newRange)}
+          />
+        </div>
+      </div>
     </div>
   );
-}
+  }
   export default CoinDetail;
