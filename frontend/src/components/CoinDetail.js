@@ -17,92 +17,7 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
-
-function interpolateCrossing(data, open) {
-  if (!data || data.length < 2) return data;
-  const result = [];
-
-  for (let i = 0; i < data.length - 1; i++) {
-    const p1 = data[i];
-    const p2 = data[i + 1];
-    result.push(p1); 
-
-    const price1 = p1.y;
-    const price2 = p2.y;
-
-    if ((price1 - open) * (price2 - open) < 0) {
-      const fraction = (open - price1) / (price2 - price1);
-      const t1 = p1.x;
-      const t2 = p2.x;
-      const crossingX = t1 + fraction * (t2 - t1);
-
-      result.push({ x: crossingX, y: open });
-    }
-  }
-  result.push(data[data.length - 1]);
-  return result;
-}
-
-
-function splitAboveBelow(data, open) {
-  const above = [];
-  const below = [];
-  data.forEach((pt) => {
-    if (pt.y >= open) {
-      above.push({ x: pt.x, y: pt.y });
-      below.push({ x: pt.x, y: null });
-    } else {
-      below.push({ x: pt.x, y: pt.y });
-      above.push({ x: pt.x, y: null });
-    }
-  });
-  return { above, below };
-}
-
-const crosshairPlugin = {
-  id: "crosshair",
-  afterDraw: (chart, args, options) => {
-    const tooltip = chart.tooltip;
-    if (tooltip && tooltip._active && tooltip._active.length) {
-      const ctx = chart.ctx;
-      if (!ctx) return;
-      const { top, bottom, left, right } = chart.chartArea;
-      const activePoint = tooltip._active[0];
-      const x = activePoint.element.x;
-      const y = activePoint.element.y;
-      ctx.save();
-      ctx.beginPath();
-      ctx.setLineDash(options.dash || [2, 2]);
-      ctx.moveTo(x, top);
-      ctx.lineTo(x, bottom);
-      ctx.moveTo(left, y);
-      ctx.lineTo(right, y);
-      ctx.lineWidth = options.lineWidth || 1;
-      ctx.strokeStyle = options.color || "rgba(0,0,0,0.3)";
-      ctx.stroke();
-      ctx.restore();
-    }
-  },
-};
-const formatDuration = (duration, preset) => {
-  // duration is in milliseconds
-  if (preset === "7d" || preset === "1yr" || preset === "3m" || preset === "max" || preset === "1m") {
-    // For longer ranges, use days
-    const days = duration / (1000 * 60 * 60 * 24);
-    return `${days.toFixed(1)} days`;
-  } else if (preset === "24hr") {
-    const hours = duration / (1000 * 60 * 60);
-    return `${hours.toFixed(1)} hours`;
-  } else if (preset === "1hr") {
-    const minutes = duration / (1000 * 60);
-    return `${minutes.toFixed(1)} minutes`;
-  } else {
-    // fallback to hours
-    const hours = duration / (1000 * 60 * 60);
-    return `${hours.toFixed(1)} hours`;
-  }
-};
-
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -119,6 +34,7 @@ ChartJS.defaults.elements.line.clip = false;
 
 const rangeOptions = ["max", "1yr", "3m", "1m", "7d", "24hr"];
 
+// Calculate time range based on preset
 const computeTimeRange = (preset, fullData) => {
   const now = Date.now();
   let start;
@@ -147,26 +63,113 @@ const computeTimeRange = (preset, fullData) => {
   return [start, now];
 };
 
+// Interpolate data for crossing points
+function interpolateCrossing(data, open) {
+  if (!data || data.length < 2) return data;
+  const result = [];
+
+  for (let i = 0; i < data.length - 1; i++) {
+    const p1 = data[i];
+    const p2 = data[i + 1];
+    result.push(p1);
+
+    const price1 = p1.y;
+    const price2 = p2.y;
+
+    if ((price1 - open) * (price2 - open) < 0) {
+      const fraction = (open - price1) / (price2 - price1);
+      const t1 = p1.x;
+      const t2 = p2.x;
+      const crossingX = t1 + fraction * (t2 - t1);
+
+      result.push({ x: crossingX, y: open });
+    }
+  }
+  result.push(data[data.length - 1]);
+  return result;
+}
+
+// Split data into above and below open price
+function splitAboveBelow(data, open) {
+  const above = [];
+  const below = [];
+  data.forEach((pt) => {
+    if (pt.y >= open) {
+      above.push({ x: pt.x, y: pt.y });
+      below.push({ x: pt.x, y: null });
+    } else {
+      below.push({ x: pt.x, y: pt.y });
+      above.push({ x: pt.x, y: null });
+    }
+  });
+  return { above, below };
+}
+
+// Custom crosshair plugin for Chart.js
+const crosshairPlugin = {
+  id: "crosshair",
+  afterDraw: (chart, args, options) => {
+    const tooltip = chart.tooltip;
+    if (tooltip && tooltip._active && tooltip._active.length) {
+      const ctx = chart.ctx;
+      if (!ctx) return;
+      const { top, bottom, left, right } = chart.chartArea;
+      const activePoint = tooltip._active[0];
+      const x = activePoint.element.x;
+      const y = activePoint.element.y;
+      ctx.save();
+      ctx.beginPath();
+      ctx.setLineDash(options.dash || [2, 2]);
+      ctx.moveTo(x, top);
+      ctx.lineTo(x, bottom);
+      ctx.moveTo(left, y);
+      ctx.lineTo(right, y);
+      ctx.lineWidth = options.lineWidth || 1;
+      ctx.strokeStyle = options.color || "rgba(0,0,0,0.3)";
+      ctx.stroke();
+      ctx.restore();
+    }
+  },
+};
+
+// Format duration based on preset
+const formatDuration = (duration, preset) => {
+  if (preset === "7d" || preset === "1yr" || preset === "3m" || preset === "max" || preset === "1m") {
+    const days = duration / (1000 * 60 * 60 * 24);
+    return `${days.toFixed(1)} days`;
+  } else if (preset === "24hr") {
+    const hours = duration / (1000 * 60 * 60);
+    return `${hours.toFixed(1)} hours`;
+  } else if (preset === "1hr") {
+    const minutes = duration / (1000 * 60);
+    return `${minutes.toFixed(1)} minutes`;
+  } else {
+    const hours = duration / (1000 * 60 * 60);
+    return `${hours.toFixed(1)} hours`;
+  }
+};
+
 const CoinDetail = ({ coinId = "bitcoin" }) => {
   const [coinDetail, setCoinDetail] = useState(null);
   const [interpolatedData, setInterpolatedData] = useState([]);
-  const [aboveData, setAboveData] = useState([]);               
-  const [belowData, setBelowData] = useState([]);               
+  const [aboveData, setAboveData] = useState([]);
+  const [belowData, setBelowData] = useState([]);
   const [stats, setStats] = useState({ open: 0, high: 0, low: 0, volume: 0 });
   const [range, setRange] = useState("7d");
   const [domainTimeRange, setDomainTimeRange] = useState([0, Date.now()]);
   const [selectedRange, setSelectedRange] = useState([0, Date.now()]);
-  const [preset, setPreset] = useState("7d"); // default preset
+  const [preset, setPreset] = useState("7d");
 
-
+  // Update time range when preset changes
   useEffect(() => {
-    // Assuming 'interpolatedData' holds your fetched data sorted by time
     const dataForRange = interpolatedData.length ? interpolatedData : null;
     const [start, end] = computeTimeRange(preset, dataForRange);
     setDomainTimeRange([start, end]);
     setSelectedRange([start, end]);
   }, [preset, interpolatedData]);
-    useEffect(() => {
+
+  // Fetch coin history data
+  useEffect(() => {
     axios
       .get(`http://localhost:8000/api/history/${coinId}?range=${preset}`)
       .then((res) => {
@@ -175,24 +178,23 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
       .catch((err) => console.error(`Error fetching history data for ${coinId}:`, err));
   }, [coinId, preset]);
 
-  
+  // Fetch coin details
+  useEffect(() => {
+    const fetchCoinDetail = () => {
+      axios
+        .get(`https://api.coincap.io/v2/assets/${coinId}?timestamp=${Date.now()}`)
+        .then((res) => {
+          console.log("New coin detail data:", res.data.data);
+          setCoinDetail(res.data.data);
+        })
+        .catch((err) => console.error("Error fetching coin detail:", err));
+    };
+    fetchCoinDetail();
+    const interval = setInterval(() => fetchCoinDetail(), 2000);
+    return () => clearInterval(interval);
+  }, [coinId]);
 
-
-    useEffect(() => {
-  const fetchCoinDetail = () => {
-    axios
-      .get(`https://api.coincap.io/v2/assets/${coinId}?timestamp=${Date.now()}`)
-      .then((res) => {
-        console.log("New coin detail data:", res.data.data);
-        setCoinDetail(res.data.data);
-      })
-      .catch((err) => console.error("Error fetching coin detail:", err));
-  };
-  fetchCoinDetail();
-  const interval = setInterval(() => fetchCoinDetail(), 2000);
-  return () => clearInterval(interval);
-}, [coinId]);
-
+  // Fetch and process historical data
   useEffect(() => {
     axios
       .get(`http://localhost:8000/api/history/${coinId}?range=${range}`)
@@ -207,7 +209,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
         }
         const sorted = rawData
           .map((p) => ({
-            x: +p.time, 
+            x: +p.time,
             y: parseFloat(p.priceUsd),
           }))
           .sort((a, b) => a.x - b.x);
@@ -225,7 +227,6 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
         }));
 
         const withCrossings = interpolateCrossing(sorted, openVal);
-
         const { above, below } = splitAboveBelow(withCrossings, openVal);
 
         setInterpolatedData(withCrossings);
@@ -237,8 +238,6 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
       );
   }, [coinId, range]);
 
-
-    
   if (!coinDetail) {
     return <p>Loading coin details...</p>;
   }
@@ -273,7 +272,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
         return mid >= openVal ? "rgba(34,197,94,1)" : "rgba(239,68,68,1)";
       },
     },
-    parsing: false, 
+    parsing: false,
     xAxisID: "x",
     yAxisID: "yPrice",
   };
@@ -285,7 +284,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
     fill: true,
     pointRadius: 0,
     tension: 0.2,
-    backgroundColor: "rgba(34,197,94,0.3)", 
+    backgroundColor: "rgba(34,197,94,0.3)",
     parsing: false,
     xAxisID: "x",
     yAxisID: "yPrice",
@@ -298,7 +297,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
     fill: true,
     pointRadius: 0,
     tension: 0.2,
-    backgroundColor: "rgba(239,68,68,0.3)", // red fill
+    backgroundColor: "rgba(239,68,68,0.3)",
     parsing: false,
     xAxisID: "x",
     yAxisID: "yPrice",
@@ -307,7 +306,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
   const chartData = {
     datasets: [aboveFillDataset, belowFillDataset, mainLineDataset],
   };
-  
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -319,10 +318,10 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
         time: {
           tooltipFormat: "PPpp"
         },
-        min: selectedRange[0], // Set x‑axis minimum
-        max: selectedRange[1], // Set x‑axis maximum
+        min: selectedRange[0],
+        max: selectedRange[1],
         grid: {
-          display: false, 
+          display: false,
         },
       },
       yPrice: {
@@ -335,8 +334,6 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
       // ... (other plugins)
     },
   };
-
- 
 
   return (
     <div className="coin-detail-page">
@@ -374,7 +371,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
           </div>
         </div>
       </div>
-  
+
       {/* Stats & Preset Range Buttons */}
       <div className="coin-detail-yr-container">
         <div className="stats-info">
@@ -421,7 +418,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
               key={option}
               onClick={() => {
                 setPreset(option);
-                setRange(option); // update the range used for fetching data
+                setRange(option);
               }}
               className={preset === option ? "active" : ""}
             >
@@ -430,12 +427,12 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
           ))}
         </div>
       </div>
-  
+
       {/* Chart */}
       <div style={{ height: "500px" }}>
         <Line data={chartData} options={chartOptions} />
       </div>
-  
+
       {/* Slider at the Bottom */}
       <div className="slider-wrapper" style={{ marginTop: "20px", textAlign: "center" }}>
         <div className="slider-container">
@@ -449,5 +446,6 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
       </div>
     </div>
   );
-  }
-  export default CoinDetail;
+};
+
+export default CoinDetail;

@@ -1,21 +1,20 @@
-// src/components/OverviewSection.js
 import React, { useEffect, useState } from "react";
 import "../css/OverviewSection.css";
 import { Sparklines, SparklinesLine } from "react-sparklines";
 import axios from "axios";
 
 const OverviewSection = () => {
-  // State for aggregated global metrics
+  // State for global metrics
   const [globalMetrics, setGlobalMetrics] = useState(null);
-  // State for historical data for sparklines
+  // State for historical data
   const [marketHistory, setMarketHistory] = useState([]);
   const [volumeHistory, setVolumeHistory] = useState([]);
-  // State for trending and top gainers lists
+  // State for trending and top gainers
   const [trendingCoins, setTrendingCoins] = useState([]);
   const [topGainers, setTopGainers] = useState([]);
 
+  // Fetch market data
   useEffect(() => {
-    // Fetch market data from backend
     axios
       .get("http://127.0.0.1:8000/api/market")
       .then((res) => {
@@ -32,31 +31,28 @@ const OverviewSection = () => {
         setGlobalMetrics({
           marketCap: globalMarketCap,
           volume24h: globalVolume24h,
-          // You could also calculate overall change if you have historical data
         });
-        // For trending, sort by changePercent24Hr descending and take top 3
+        // Sort coins by 24hr change
         const sortedByChange = [...coins].sort(
           (a, b) =>
             parseFloat(b.changePercent24Hr) - parseFloat(a.changePercent24Hr)
         );
         setTrendingCoins(sortedByChange.slice(0, 3));
-        // For top gainers, you might use the same sorted list or a different criteria
         setTopGainers(sortedByChange.slice(0, 3));
       })
       .catch((err) => console.error("Error fetching market data:", err));
 
-    // Fetch historical global market cap data for sparkline
+    // Fetch historical market cap data
     axios
       .get("http://127.0.0.1:8000/api/globalMarketHistory")
       .then((res) => {
-        // Expecting res.data.data to be an array of numbers
         setMarketHistory(res.data.data);
       })
       .catch((err) =>
         console.error("Error fetching global market history:", err)
       );
 
-    // Fetch historical global 24h volume data for sparkline
+    // Fetch historical volume data
     axios
       .get("http://127.0.0.1:8000/api/globalVolumeHistory")
       .then((res) => {
@@ -85,7 +81,6 @@ const OverviewSection = () => {
             <div className="stat-info">
               <h3>${globalMetrics.marketCap.toLocaleString()}</h3>
               <p>Market Cap</p>
-              {/* Optionally show a percentage change if available */}
             </div>
             <div className="sparkline">
               {marketHistory.length > 0 && (
@@ -113,6 +108,7 @@ const OverviewSection = () => {
 
         {/* Right Column: Trending and Top Gainers */}
         <div className="lists-container">
+          {/* Trending Coins */}
           <div className="list-card">
             <div className="list-card-header">
               <h3>Trending</h3>
@@ -136,6 +132,7 @@ const OverviewSection = () => {
             </ul>
           </div>
 
+          {/* Top Gainers */}
           <div className="list-card">
             <div className="list-card-header">
               <h3>Top Gainers</h3>

@@ -1,4 +1,3 @@
-// src/components/CoinList.js
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../css/dashboard.css";
@@ -19,14 +18,17 @@ const CoinList = ({ coins, searchTerm }) => {
   const currentCoins = filteredCoins.slice(indexOfFirstCoin, indexOfLastCoin);
   const totalPages = Math.ceil(filteredCoins.length / coinsPerPage);
 
+  // Handle page change
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
+  // Handle next page
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
+  // Handle previous page
   const handlePrevPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
@@ -90,8 +92,7 @@ const CoinRow = ({ coin }) => {
     );
   };
 
-  // Compute percent change based on historical data:
-  // percent change = ((latestPrice - firstPrice) / firstPrice) * 100
+  // Compute percent change based on historical data
   const computeChange = (history) => {
     if (history && history.length > 0) {
       const firstPrice = parseFloat(history[0].priceUsd);
@@ -103,10 +104,11 @@ const CoinRow = ({ coin }) => {
     return 0;
   };
 
+  // Fetch 1hr and 7d history data
   useEffect(() => {
     // Fetch 1hr history
     fetch(`http://localhost:8000/api/history/${coin.id}?range=1hr`)
-    .then((res) => res.json())
+      .then((res) => res.json())
       .then((data) => {
         console.log("1hr data for", coin.id, data);
         if (data && data.data && data.data.length > 0) {
@@ -121,10 +123,10 @@ const CoinRow = ({ coin }) => {
         console.error("1hr fetch error", err);
         setOneHrChange(0);
       });
-  
+
     // Fetch 7d history
     fetch(`http://localhost:8000/api/history/${coin.id}?range=7d`)
-    .then((res) => res.json())
+      .then((res) => res.json())
       .then((data) => {
         console.log("7d data for", coin.id, data);
         if (data && data.data && data.data.length > 0) {
@@ -140,7 +142,6 @@ const CoinRow = ({ coin }) => {
         setSevenDayChange(0);
       });
   }, [coin.id]);
-  
 
   return (
     <tr>

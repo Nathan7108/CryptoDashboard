@@ -2,7 +2,7 @@ import React from 'react';
 import Slider, { Range } from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
-function TimeRangeSlider({ min, max, value, onRangeChange, preset }) {
+function TimeRangeSlider({ min, max, value, onRangeChange }) {
   // Format a timestamp as "YYYY-MM-DD hh:mm:ss AM/PM"
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleString('en-US', {
@@ -34,7 +34,7 @@ function TimeRangeSlider({ min, max, value, onRangeChange, preset }) {
 
   return (
     <div style={{ position: 'relative', margin: '20px auto', width: '1379px', height: '73px' }}>
-      {/* Label Box Above the Slider (33px high) */}
+      {/* Label Box Above the Slider */}
       <div
         style={{
           height: '33px',
@@ -51,7 +51,7 @@ function TimeRangeSlider({ min, max, value, onRangeChange, preset }) {
         <div>{formatDate(value[1])}</div>
       </div>
 
-      {/* Slider Bar (40px high) */}
+      {/* Slider Bar */}
       <div style={{ position: 'absolute', bottom: '0px', left: 0, right: 0 }}>
         <Range
           min={min}

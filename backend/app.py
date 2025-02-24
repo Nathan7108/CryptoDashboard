@@ -1,4 +1,3 @@
-# app.py
 import os
 import time
 import asyncio
@@ -11,7 +10,7 @@ load_dotenv()
 
 app = FastAPI()
 
-# Allow CORS from all origins (adjust as needed)
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,7 +22,7 @@ app.add_middleware(
 COINCAP_API_URL = "https://api.coincap.io/v2"
 COINCAP_API_KEY = os.getenv("COINCAP_API_KEY", "your_api_key_here")
 
-
+# API endpoint to get market data
 @app.get("/api/market")
 def get_market_data():
     url = f"{COINCAP_API_URL}/assets?limit=500"
@@ -35,7 +34,7 @@ def get_market_data():
         raise HTTPException(status_code=500, detail=f"Failed to fetch market data: {e}")
     return response.json()
 
-
+# API endpoint to get historical data for a specific coin
 @app.get("/api/history/{coin_id}")
 def get_history(coin_id: str, range: str = "24hr"):
     try:
@@ -43,6 +42,7 @@ def get_history(coin_id: str, range: str = "24hr"):
         start = None
         api_interval = None
 
+        # Determine the start time and interval based on the range
         if range == 'max':
             start = 0
             api_interval = 'd1'
@@ -76,9 +76,7 @@ def get_history(coin_id: str, range: str = "24hr"):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unhandled exception: {e}")
 
-
-# --- WebSocket Section ---
-
+# WebSocket connection manager
 class ConnectionManager:
     def __init__(self):
         self.active_connections = []
@@ -95,25 +93,20 @@ class ConnectionManager:
         for connection in self.active_connections:
             await connection.send_json(message)
 
-
 manager = ConnectionManager()
 
-
+# WebSocket endpoint for market data
 @app.websocket("/ws/market")
 async def websocket_market(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            # Keep connection open. Optionally, you can await incoming messages.
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
-
+# Background task to fetch and broadcast market data
 async def market_data_broadcaster():
-    """
-    Background task that fetches market data every 5 seconds and broadcasts it to all WebSocket clients.
-    """
     while True:
         await asyncio.sleep(5)
         url = f"{COINCAP_API_URL}/assets?limit=500"
@@ -127,10 +120,9 @@ async def market_data_broadcaster():
         except Exception as e:
             print("Error in background broadcaster:", e)
 
-
+# Start the background task on application startup
 @app.on_event("startup")
 async def startup_event():
-    # Start the background task on application startup.
     asyncio.create_task(market_data_broadcaster())
 
 if __name__ == '__main__':
