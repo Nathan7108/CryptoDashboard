@@ -17,7 +17,7 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
-// Register Chart.js components
+// Register built-in Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -26,15 +26,13 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend,
-  crosshairPlugin
+  Legend
 );
 
 ChartJS.defaults.elements.line.clip = false;
 
 const rangeOptions = ["max", "1yr", "3m", "1m", "7d", "24hr"];
 
-// Calculate time range based on preset
 const computeTimeRange = (preset, fullData) => {
   const now = Date.now();
   let start;
@@ -89,6 +87,85 @@ function interpolateCrossing(data, open) {
   return result;
 }
 
+const crosshairPlugin = {
+  id: "crosshair",
+  afterInit: (chart, options) => {
+    chart.crosshair = { x: null, y: null };
+
+    const mouseMoveHandler = (evt) => {
+      if (!chart.canvas) return;
+      const rect = chart.canvas.getBoundingClientRect();
+      if (!rect) return;
+      chart.crosshair.x = evt.clientX - rect.left;
+      chart.crosshair.y = evt.clientY - rect.top;
+      if (chart.ctx) {
+        chart.draw();
+      }
+    };
+
+    const mouseLeaveHandler = () => {
+      chart.crosshair.x = null;
+      chart.crosshair.y = null;
+      if (chart.ctx) {
+        chart.draw();
+      }
+    };
+
+    if (chart.canvas) {
+      chart.canvas.addEventListener("mousemove", mouseMoveHandler);
+      chart.canvas.addEventListener("mouseleave", mouseLeaveHandler);
+    }
+
+    chart._crosshairMouseMoveHandler = mouseMoveHandler;
+    chart._crosshairMouseLeaveHandler = mouseLeaveHandler;
+  },
+
+  afterDraw: (chart, args, options) => {
+    const ctx = chart.ctx;
+    if (!ctx || !chart.crosshair || chart.crosshair.x === null) return;
+    const { top, bottom, left, right } = chart.chartArea || {};
+    if (top === undefined || bottom === undefined || left === undefined || right === undefined) return;
+    
+    const x = chart.crosshair.x;
+    const y = chart.crosshair.y;
+    
+    ctx.save();
+    ctx.setLineDash(options.dash || [5, 5]);
+    ctx.lineWidth = options.lineWidth || 1;
+    ctx.strokeStyle = options.color || "rgba(0,0,0,0.5)";
+    
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bottom);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(right, y);
+    ctx.stroke();
+    ctx.restore();
+
+    if (chart.scales && chart.scales.yPrice) {
+      const price = chart.scales.yPrice.getValueForPixel(y);
+      const priceLabel = price.toFixed(2);
+      ctx.save();
+      ctx.font = options.font || "12px sans-serif";
+      ctx.fillStyle = options.fontColor || "black";
+      ctx.fillText(priceLabel, left + 5, y - 5);
+      ctx.restore();
+    }
+  },
+
+  afterDestroy: (chart) => {
+    if (chart.canvas) {
+      chart.canvas.removeEventListener("mousemove", chart._crosshairMouseMoveHandler);
+      chart.canvas.removeEventListener("mouseleave", chart._crosshairMouseLeaveHandler);
+    }
+  },
+};
+
+ChartJS.register(crosshairPlugin);
+
 // Split data into above and below open price
 function splitAboveBelow(data, open) {
   const above = [];
@@ -105,32 +182,6 @@ function splitAboveBelow(data, open) {
   return { above, below };
 }
 
-// Custom crosshair plugin for Chart.js
-const crosshairPlugin = {
-  id: "crosshair",
-  afterDraw: (chart, args, options) => {
-    const tooltip = chart.tooltip;
-    if (tooltip && tooltip._active && tooltip._active.length) {
-      const ctx = chart.ctx;
-      if (!ctx) return;
-      const { top, bottom, left, right } = chart.chartArea;
-      const activePoint = tooltip._active[0];
-      const x = activePoint.element.x;
-      const y = activePoint.element.y;
-      ctx.save();
-      ctx.beginPath();
-      ctx.setLineDash(options.dash || [2, 2]);
-      ctx.moveTo(x, top);
-      ctx.lineTo(x, bottom);
-      ctx.moveTo(left, y);
-      ctx.lineTo(right, y);
-      ctx.lineWidth = options.lineWidth || 1;
-      ctx.strokeStyle = options.color || "rgba(0,0,0,0.3)";
-      ctx.stroke();
-      ctx.restore();
-    }
-  },
-};
 
 // Format duration based on preset
 const formatDuration = (duration, preset) => {
@@ -173,7 +224,6 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
     axios
       .get(`http://localhost:8000/api/history/${coinId}?range=${preset}`)
       .then((res) => {
-        // process your data and update chart datasets...
       })
       .catch((err) => console.error(`Error fetching history data for ${coinId}:`, err));
   }, [coinId, preset]);
@@ -278,7 +328,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
   };
 
   const aboveFillDataset = {
-    label: "Above Fill",
+    label: "Above Open",
     data: aboveData,
     borderWidth: 0,
     fill: true,
@@ -291,7 +341,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
   };
 
   const belowFillDataset = {
-    label: "Below Fill",
+    label: "Below Open",
     data: belowData,
     borderWidth: 0,
     fill: true,
@@ -315,14 +365,10 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
     scales: {
       x: {
         type: "time",
-        time: {
-          tooltipFormat: "PPpp"
-        },
+        time: { tooltipFormat: "PPpp" },
         min: selectedRange[0],
         max: selectedRange[1],
-        grid: {
-          display: false,
-        },
+        grid: { display: false },
       },
       yPrice: {
         type: "linear",
@@ -330,11 +376,21 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
       },
     },
     plugins: {
+      crosshair: {
+        dash: [5, 5],
+        lineWidth: 1,
+        color: "rgba(0,0,0,0.5)",
+        font: "12px sans-serif",
+        fontColor: "black",
+      },
+      tooltip: {
+        mode: "index",
+        intersect: false,
+      },
       legend: { display: false },
-      // ... (other plugins)
     },
   };
-
+  
   return (
     <div className="coin-detail-page">
       {/* Header: Price & Coin Info */}
