@@ -1,8 +1,9 @@
-# Use an official Node runtime as a parent image
-FROM node:16-alpine
+# Use an official SUSE Linux as a parent image
+FROM opensuse/leap:15.6
 
-# Install Python (if not already present)
-RUN apk add --no-cache python3 py3-pip
+# Update and install dependencies using zypper (SUSE's package manager)
+RUN zypper refresh && \
+    zypper install -y python3 python3-pip nodejs npm
 
 # Set the working directory
 WORKDIR /app
@@ -11,7 +12,7 @@ WORKDIR /app
 COPY frontend ./frontend
 COPY backend ./backend
 
-# Install Node dependencies for the frontend
+# Install Node.js dependencies for the frontend
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
@@ -28,8 +29,8 @@ WORKDIR /app
 COPY start.sh ./
 RUN chmod +x start.sh
 
-# Expose the port (assuming your frontend runs on port 3000)
-EXPOSE 3000
+# Expose the ports for frontend and backend
+EXPOSE 3000 8000
 
 # Use the startup script as the command to run when the container starts
 CMD ["./start.sh"]
