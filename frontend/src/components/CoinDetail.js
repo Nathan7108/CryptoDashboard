@@ -17,7 +17,6 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
-// Register built-in Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -33,6 +32,7 @@ ChartJS.defaults.elements.line.clip = false;
 
 const rangeOptions = ["max", "1yr", "3m", "1m", "7d", "24hr"];
 
+// Utility to compute the time range for each preset
 const computeTimeRange = (preset, fullData) => {
   const now = Date.now();
   let start;
@@ -61,11 +61,10 @@ const computeTimeRange = (preset, fullData) => {
   return [start, now];
 };
 
-// Interpolate data for crossing points
+// Interpolate crossing points (same as your existing logic)
 function interpolateCrossing(data, open) {
   if (!data || data.length < 2) return data;
   const result = [];
-
   for (let i = 0; i < data.length - 1; i++) {
     const p1 = data[i];
     const p2 = data[i + 1];
@@ -79,7 +78,6 @@ function interpolateCrossing(data, open) {
       const t1 = p1.x;
       const t2 = p2.x;
       const crossingX = t1 + fraction * (t2 - t1);
-
       result.push({ x: crossingX, y: open });
     }
   }
@@ -87,86 +85,7 @@ function interpolateCrossing(data, open) {
   return result;
 }
 
-const crosshairPlugin = {
-  id: "crosshair",
-  afterInit: (chart, options) => {
-    chart.crosshair = { x: null, y: null };
-
-    const mouseMoveHandler = (evt) => {
-      if (!chart.canvas) return;
-      const rect = chart.canvas.getBoundingClientRect();
-      if (!rect) return;
-      chart.crosshair.x = evt.clientX - rect.left;
-      chart.crosshair.y = evt.clientY - rect.top;
-      if (chart.ctx) {
-        chart.draw();
-      }
-    };
-
-    const mouseLeaveHandler = () => {
-      chart.crosshair.x = null;
-      chart.crosshair.y = null;
-      if (chart.ctx) {
-        chart.draw();
-      }
-    };
-
-    if (chart.canvas) {
-      chart.canvas.addEventListener("mousemove", mouseMoveHandler);
-      chart.canvas.addEventListener("mouseleave", mouseLeaveHandler);
-    }
-
-    chart._crosshairMouseMoveHandler = mouseMoveHandler;
-    chart._crosshairMouseLeaveHandler = mouseLeaveHandler;
-  },
-
-  afterDraw: (chart, args, options) => {
-    const ctx = chart.ctx;
-    if (!ctx || !chart.crosshair || chart.crosshair.x === null) return;
-    const { top, bottom, left, right } = chart.chartArea || {};
-    if (top === undefined || bottom === undefined || left === undefined || right === undefined) return;
-    
-    const x = chart.crosshair.x;
-    const y = chart.crosshair.y;
-    
-    ctx.save();
-    ctx.setLineDash(options.dash || [5, 5]);
-    ctx.lineWidth = options.lineWidth || 1;
-    ctx.strokeStyle = options.color || "rgba(0,0,0,0.5)";
-    
-    ctx.beginPath();
-    ctx.moveTo(x, top);
-    ctx.lineTo(x, bottom);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(left, y);
-    ctx.lineTo(right, y);
-    ctx.stroke();
-    ctx.restore();
-
-    if (chart.scales && chart.scales.yPrice) {
-      const price = chart.scales.yPrice.getValueForPixel(y);
-      const priceLabel = price.toFixed(2);
-      ctx.save();
-      ctx.font = options.font || "12px sans-serif";
-      ctx.fillStyle = options.fontColor || "black";
-      ctx.fillText(priceLabel, left + 5, y - 5);
-      ctx.restore();
-    }
-  },
-
-  afterDestroy: (chart) => {
-    if (chart.canvas) {
-      chart.canvas.removeEventListener("mousemove", chart._crosshairMouseMoveHandler);
-      chart.canvas.removeEventListener("mouseleave", chart._crosshairMouseLeaveHandler);
-    }
-  },
-};
-
-ChartJS.register(crosshairPlugin);
-
-// Split data into above and below open price
+// Split data above/below open
 function splitAboveBelow(data, open) {
   const above = [];
   const below = [];
@@ -182,23 +101,72 @@ function splitAboveBelow(data, open) {
   return { above, below };
 }
 
-
-// Format duration based on preset
-const formatDuration = (duration, preset) => {
-  if (preset === "7d" || preset === "1yr" || preset === "3m" || preset === "max" || preset === "1m") {
-    const days = duration / (1000 * 60 * 60 * 24);
-    return `${days.toFixed(1)} days`;
-  } else if (preset === "24hr") {
-    const hours = duration / (1000 * 60 * 60);
-    return `${hours.toFixed(1)} hours`;
-  } else if (preset === "1hr") {
-    const minutes = duration / (1000 * 60);
-    return `${minutes.toFixed(1)} minutes`;
-  } else {
-    const hours = duration / (1000 * 60 * 60);
-    return `${hours.toFixed(1)} hours`;
-  }
+const crosshairPlugin = {
+  id: "crosshair",
+  afterInit: (chart, options) => {
+    chart.crosshair = { x: null, y: null };
+    const mouseMoveHandler = (evt) => {
+      if (!chart.canvas) return;
+      const rect = chart.canvas.getBoundingClientRect();
+      if (!rect) return;
+      chart.crosshair.x = evt.clientX - rect.left;
+      chart.crosshair.y = evt.clientY - rect.top;
+      if (chart.ctx) chart.draw();
+    };
+    const mouseLeaveHandler = () => {
+      chart.crosshair.x = null;
+      chart.crosshair.y = null;
+      if (chart.ctx) chart.draw();
+    };
+    if (chart.canvas) {
+      chart.canvas.addEventListener("mousemove", mouseMoveHandler);
+      chart.canvas.addEventListener("mouseleave", mouseLeaveHandler);
+    }
+    chart._crosshairMouseMoveHandler = mouseMoveHandler;
+    chart._crosshairMouseLeaveHandler = mouseLeaveHandler;
+  },
+  afterDraw: (chart, args, options) => {
+    const ctx = chart.ctx;
+    if (!ctx || !chart.crosshair || chart.crosshair.x === null) return;
+    const { top, bottom, left, right } = chart.chartArea || {};
+    if (top === undefined || bottom === undefined || left === undefined || right === undefined) return;
+    
+    const x = chart.crosshair.x;
+    const y = chart.crosshair.y;
+    ctx.save();
+    ctx.setLineDash(options.dash || [5, 5]);
+    ctx.lineWidth = options.lineWidth || 1;
+    ctx.strokeStyle = options.color || "rgba(0,0,0,0.5)";
+    // Vertical line
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bottom);
+    ctx.stroke();
+    // Horizontal line
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(right, y);
+    ctx.stroke();
+    ctx.restore();
+    if (chart.scales && chart.scales.yPrice) {
+      const price = chart.scales.yPrice.getValueForPixel(y);
+      const priceLabel = price.toFixed(2);
+      ctx.save();
+      ctx.font = options.font || "12px sans-serif";
+      ctx.fillStyle = options.fontColor || "black";
+      ctx.fillText(priceLabel, left + 5, y - 5);
+      ctx.restore();
+    }
+  },
+  afterDestroy: (chart) => {
+    if (chart.canvas) {
+      chart.canvas.removeEventListener("mousemove", chart._crosshairMouseMoveHandler);
+      chart.canvas.removeEventListener("mouseleave", chart._crosshairMouseLeaveHandler);
+    }
+  },
 };
+ChartJS.register(crosshairPlugin);
+
 
 const CoinDetail = ({ coinId = "bitcoin" }) => {
   const [coinDetail, setCoinDetail] = useState(null);
@@ -211,7 +179,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
   const [selectedRange, setSelectedRange] = useState([0, Date.now()]);
   const [preset, setPreset] = useState("7d");
 
-  // Update time range when preset changes
+  // Update domain range when preset changes
   useEffect(() => {
     const dataForRange = interpolatedData.length ? interpolatedData : null;
     const [start, end] = computeTimeRange(preset, dataForRange);
@@ -219,32 +187,22 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
     setSelectedRange([start, end]);
   }, [preset, interpolatedData]);
 
-  // Fetch coin history data
-  useEffect(() => {
-    axios
-      .get(`http://localhost:8000/api/history/${coinId}?range=${preset}`)
-      .then((res) => {
-      })
-      .catch((err) => console.error(`Error fetching history data for ${coinId}:`, err));
-  }, [coinId, preset]);
-
-  // Fetch coin details
+  // Fetch coin detail every 2s
   useEffect(() => {
     const fetchCoinDetail = () => {
       axios
         .get(`https://api.coincap.io/v2/assets/${coinId}?timestamp=${Date.now()}`)
         .then((res) => {
-          console.log("New coin detail data:", res.data.data);
           setCoinDetail(res.data.data);
         })
         .catch((err) => console.error("Error fetching coin detail:", err));
     };
     fetchCoinDetail();
-    const interval = setInterval(() => fetchCoinDetail(), 2000);
+    const interval = setInterval(fetchCoinDetail, 2000);
     return () => clearInterval(interval);
   }, [coinId]);
 
-  // Fetch and process historical data
+  // Fetch historical data
   useEffect(() => {
     axios
       .get(`http://localhost:8000/api/history/${coinId}?range=${range}`)
@@ -268,31 +226,28 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
         const allPrices = sorted.map((p) => p.y);
         const high = Math.max(...allPrices);
         const low = Math.min(...allPrices);
-        setStats((prev) => ({
-          ...prev,
+
+        setStats({
           open: openVal,
           high,
           low,
-          volume: 0,
-        }));
+          volume: 0, // If we eventually fetch volume data, set it here
+        });
 
         const withCrossings = interpolateCrossing(sorted, openVal);
         const { above, below } = splitAboveBelow(withCrossings, openVal);
-
         setInterpolatedData(withCrossings);
         setAboveData(above);
         setBelowData(below);
       })
-      .catch((err) =>
-        console.error(`Error fetching history data for ${coinId}:`, err)
-      );
+      .catch((err) => console.error(`Error fetching history data for ${coinId}:`, err));
   }, [coinId, range]);
 
   if (!coinDetail) {
     return <p>Loading coin details...</p>;
   }
 
-  const currentPrice = parseFloat(coinDetail.priceUsd);
+  const currentPrice = parseFloat(coinDetail.priceUsd) || 0;
   const computedPriceChange = stats.open
     ? ((currentPrice - stats.open) / stats.open) * 100
     : 0;
@@ -302,6 +257,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
       : `v${Math.abs(computedPriceChange).toFixed(2)}%`;
   const priceChangeDisplayColor = currentPrice >= stats.open ? "green" : "red";
 
+  // Datasets for the chart
   const mainLineDataset = {
     label: "Price",
     data: interpolatedData,
@@ -353,9 +309,7 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
     yAxisID: "yPrice",
   };
 
-  const chartData = {
-    datasets: [aboveFillDataset, belowFillDataset, mainLineDataset],
-  };
+  const chartData = { datasets: [aboveFillDataset, belowFillDataset, mainLineDataset] };
 
   const chartOptions = {
     responsive: true,
@@ -390,118 +344,172 @@ const CoinDetail = ({ coinId = "bitcoin" }) => {
       legend: { display: false },
     },
   };
-  
+
+
   return (
-    <div className="coin-detail-page">
-      {/* Header: Price & Coin Info */}
-      <div className="coin-detail-header">
-        <div className="price-section">
-          <h1 className="coin-price">
-            ${currentPrice.toLocaleString(undefined, {
+    <div
+      className="coin-detail-page"
+      style={{
+        height: "calc(100vh - 60px)",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        padding: "0 20px",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Top Section: Price, Price Change, and Coin Name */}
+      <div style={{ textAlign: "center", padding: "10px 0" }}>
+        <h1
+          className="coin-price"
+          style={{ margin: 0, fontSize: "3rem", fontWeight: "bold" }}
+        >
+          $
+          {currentPrice.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </h1>
+        {stats.open ? (
+          <span
+            className="price-change"
+            style={{ color: priceChangeDisplayColor, fontSize: "1.2rem" }}
+          >
+            {priceChangeFormatted}
+          </span>
+        ) : (
+          <span className="price-change">Loading...</span>
+        )}
+        <h2
+          className="coin-name"
+          style={{ marginTop: "5px", fontSize: "1.5rem", color: "#333" }}
+        >
+          {coinDetail.name} ({coinDetail.symbol})
+        </h2>
+      </div>
+  
+      {/* Unified Metrics Row */}
+      <div
+        className="metrics-row"
+        style={{
+          display: "flex",
+          justifyContent: "space-around",
+          alignItems: "center",
+          flexWrap: "nowrap",
+          padding: "10px 0",
+          border: "1px solid #ddd",
+          borderRadius: "4px",
+          backgroundColor: "#f9f9f9",
+          margin: "0 20px",
+          marginBottom: "10px",
+        }}
+      >
+        <div className="metric-item" style={{ textAlign: "center", flex: "1" }}>
+          <strong>Market Cap</strong>
+          <div>
+            $
+            {Number(coinDetail.marketCapUsd).toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
-          </h1>
-          {stats.open ? (
-            <span className="price-change" style={{ color: priceChangeDisplayColor }}>
-              {priceChangeFormatted}
-            </span>
-          ) : (
-            <span className="price-change">Loading...</span>
-          )}
-        </div>
-        <div className="coin-info">
-          <div className="coin-info-block">
-            <strong>Market Cap. #{coinDetail.rank}</strong>
-            <div>${Number(coinDetail.marketCapUsd).toLocaleString()}</div>
-          </div>
-          <div className="coin-info-block">
-            <strong>Volume (24h) #{coinDetail.rank}</strong>
-            <div>${Number(coinDetail.volumeUsd24Hr).toLocaleString()}</div>
-          </div>
-          <div className="coin-info-block">
-            <strong>Supply (Circ. / Total / Max)</strong>
-            <div>
-              {coinDetail.supply} / {coinDetail.totalSupply} / {coinDetail.maxSupply}
-            </div>
           </div>
         </div>
-      </div>
-
-      {/* Stats & Preset Range Buttons */}
-      <div className="coin-detail-yr-container">
-        <div className="stats-info">
-          <div className="stats-item">
-            <strong>{preset.toUpperCase()} Open</strong>
-            <span>
-              ${stats.open.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-          <div className="stats-item">
-            <strong>{preset.toUpperCase()} High</strong>
-            <span>
-              ${stats.high.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-          <div className="stats-item">
-            <strong>{preset.toUpperCase()} Low</strong>
-            <span>
-              ${stats.low.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-          <div className="stats-item">
-            <strong>{preset.toUpperCase()} Vol.</strong>
-            <span>
-              ${stats.volume.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
+        <div className="metric-item" style={{ textAlign: "center", flex: "1" }}>
+          <strong>24HR Volume</strong>
+          <div>
+            $
+            {Number(coinDetail.volumeUsd24Hr).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </div>
         </div>
-        <div className="range-options">
-          {rangeOptions.map((option) => (
-            <button
-              key={option}
-              onClick={() => {
-                setPreset(option);
-                setRange(option);
-              }}
-              className={preset === option ? "active" : ""}
-            >
-              {option.toUpperCase()}
-            </button>
-          ))}
+        <div className="metric-item" style={{ textAlign: "center", flex: "1" }}>
+          <strong>{preset.toUpperCase()} Open</strong>
+          <div>
+            $
+            {stats.open.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </div>
+        </div>
+        <div className="metric-item" style={{ textAlign: "center", flex: "1" }}>
+          <strong>{preset.toUpperCase()} High</strong>
+          <div>
+            $
+            {stats.high.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </div>
+        </div>
+        <div className="metric-item" style={{ textAlign: "center", flex: "1" }}>
+          <strong>{preset.toUpperCase()} Low</strong>
+          <div>
+            $
+            {stats.low.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </div>
         </div>
       </div>
-
-      {/* Chart */}
-      <div style={{ height: "500px" }}>
-        <Line data={chartData} options={chartOptions} />
+  
+      {/* Range Options Buttons */}
+      <div
+        className="range-options"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px",
+          marginBottom: "10px",
+        }}
+      >
+        {rangeOptions.map((option) => (
+          <button
+            key={option}
+            onClick={() => {
+              setPreset(option);
+              setRange(option);
+            }}
+            className={preset === option ? "active" : ""}
+            style={{
+              padding: "8px 12px",
+              borderRadius: "4px",
+              border: "none",
+              backgroundColor: preset === option ? "#ffd600" : "#dee2e6",
+              cursor: "pointer",
+              fontWeight: "500",
+            }}
+          >
+            {option.toUpperCase()}
+          </button>
+        ))}
       </div>
-
-      {/* Slider at the Bottom */}
-      <div className="slider-wrapper" style={{ marginTop: "20px", textAlign: "center" }}>
-        <div className="slider-container">
-          <TimeRangeSlider
-            min={domainTimeRange[0]}
-            max={domainTimeRange[1]}
-            value={selectedRange}
-            onRangeChange={(newRange) => setSelectedRange(newRange)}
-          />
+  
+      {/* Chart Area */}
+      <div
+        className="coin-detail-chart"
+        style={{ flex: 1, marginTop: "10px", padding: "0 20px" }}
+      >
+        <div style={{ width: "100%", height: "380px" }}>
+          <Line data={chartData} options={chartOptions} />
         </div>
+      </div>
+  
+      {/* Time Range Slider */}
+      <div className="slider-wrapper">
+        <TimeRangeSlider
+          min={domainTimeRange[0]}
+          max={domainTimeRange[1]}
+          value={selectedRange}
+          onRangeChange={(newRange) => setSelectedRange(newRange)}
+        />
       </div>
     </div>
   );
-};
+  
+  };
 
 export default CoinDetail;

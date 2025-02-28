@@ -6,7 +6,6 @@ import "../css/dashboard.css";
 const Dashboard = ({ searchTerm }) => {
   const [marketData, setMarketData] = useState(null);
 
-  // Fetch market data from the FastAPI endpoint
   useEffect(() => {
     axios
       .get("http://localhost:8000/api/market")
@@ -17,7 +16,25 @@ const Dashboard = ({ searchTerm }) => {
       })
       .catch((err) => console.error("Error fetching market data:", err));
   }, []);
-
+  useEffect(() => {
+    const fetchData = () => {
+      axios
+        .get("http://localhost:8000/api/market")
+        .then((res) => {
+          if (res.data && res.data.data) {
+            setMarketData(res.data.data);
+          }
+        })
+        .catch((err) => console.error("Error fetching market data:", err));
+    };
+  
+    // Fetch immediately and then poll every 2 seconds
+    fetchData();
+    const intervalId = setInterval(fetchData, 2000);
+  
+    return () => clearInterval(intervalId);
+  }, []);
+  
   return (
     <div className="dashboard">
       {marketData ? (
