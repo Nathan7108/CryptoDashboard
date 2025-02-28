@@ -3,9 +3,9 @@ import time
 import asyncio
 import requests
 import json
+import math
 import websockets
-from datetime import datetime
-
+from datetime import datetime, timedelta
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -31,6 +31,28 @@ TSTORE_HEADERS = {
     "Content-Type": "application/json",
     "Authorization": "Bearer your_tstore_api_key"
 }
+
+# Price based on time
+def fetch_price_at_time(coin_id: str, target_ts: int, window: int = 15 * 60 * 1000):
+    """
+    Fetch historical data around the target timestamp within a given window (default ±15 minutes).
+    Returns the data point closest to the target timestamp.
+    """
+    start = target_ts - window
+    end = target_ts + window
+    url = f"{COINCAP_API_URL}/assets/{coin_id}/history?start={start}&end={end}&interval=m1"
+    headers = {"Authorization": f"Bearer {COINCAP_API_KEY}"}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    data = response.json().get("data", [])
+    
+    if not data:
+        return None
+
+    # Find the point with the minimal time difference to target_ts
+    closest_point = min(data, key=lambda p: abs(p.get("time", 0) - target_ts))
+    return closest_point
+
 
 # -----------------------------------------
 # Section 1: Get Data from CoinCap
@@ -226,6 +248,60 @@ async def websocket_market(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+
+# ----------------------------
+#One year history
+#--------------------
+from datetime import datetime, timedelta
+import math
+
+def fetch_price_at_time(coin_id: str, target_ts: int, window: int = 15 * 60 * 1000):
+    """
+    Fetch historical data around the target timestamp within a given window (default ±15 minutes).
+    Returns the data point closest to the target timestamp.
+    """
+    start = target_ts - window
+    end = target_ts + window
+    url = f"{COINCAP_API_URL}/assets/{coin_id}/history?start={start}&end={end}&interval=m1"
+    headers = {"Authorization": f"Bearer {COINCAP_API_KEY}"}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    data = response.json().get("data", [])
+    
+    if not data:
+        return None
+
+    # Find the point with the minimal time difference to target_ts
+    closest_point = min(data, key=lambda p: abs(p.get("time", 0) - target_ts))
+    return closest_point
+
+@app.get("/api/one_year_history/{coin_id}")
+def one_year_history(coin_id: str):
+    """
+    Build a 1-year history for the given coin, with one data point at 6am and one at 6pm each day.
+    Timestamps are calculated in UTC.
+    """
+    results = []
+    # Set the start date to today at midnight UTC (without time component)
+    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    for day_offset in range(365):
+        day = today - timedelta(days=day_offset)
+        for hour in [6, 18]:  # 6am and 6pm
+            target_time = day.replace(hour=hour)
+            target_ts = math.floor(target_time.timestamp() * 1000)  # in milliseconds
+            point = fetch_price_at_time(coin_id, target_ts)
+            if point:
+                # Optionally, add a field to indicate the intended target time
+                point["target_time"] = target_time.isoformat() + "Z"
+                results.append(point)
+    
+    # Optionally, sort the results chronologically
+    results.sort(key=lambda p: p.get("time", 0))
+    return {"status": "success", "coin": coin_id, "data": results}
+
+
 
 # -----------------------------------------
 # Section 5: Background Task for Live Data Updates
